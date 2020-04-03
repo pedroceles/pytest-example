@@ -285,3 +285,17 @@ Every fixture will run before the test. However some times it is also necessary 
 To achieve this, the feature should `yield` a value instead of returning it. The clean-up run time will depend on
 the fixture's scope. If it is `function`, after it test where it is used, if it is `class` after it test case and
 so on.
+
+```python
+class TestFixtureCleanup:
+    @pytest.fixture
+    def fixture_with_cleanup(self):
+        print('running fixture before test')
+        yield 'fixture'
+        print('cleaning up after test')
+
+    def test_feature_with_cleanup(self, fixture_with_cleanup):
+        # Check printed messages while running this test
+        print('running test')
+        assert fixture_with_cleanup == 'fixture'
+```

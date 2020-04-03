@@ -1,7 +1,15 @@
-# TODO: DISCLAIMER SCOPE CHANGE
-# TODO: xFail
+"""
+This is an example test file. This is by no means a good practice example in testing.
+The goal here is to demonstrate some of pytest fixtures features. For that purpose
+some good practices rules were broken. Specially regarding test scope and dependency.
+Some tests like `TestFixtureSideEffects.test_side_effects` are expected to fail
+if run on their own.
+You are encouraged to play around with the tests running a single one of them or all of them.
+
+Tests annotated with @pytest.mark.xfail are expected to fail. You can remove the decorator
+to see the test failing.
+"""
 from dataclasses import dataclass
-import uuid
 
 import pytest
 
@@ -199,6 +207,7 @@ class TestScopeDependency:
     @pytest.mark.xfail(reason='Fails because of wrong feature dependency')
     def test_fails_due_to_wrong_feature_dependency(self, class_scoped_depending_on_function_scoped):
         assert class_scoped_depending_on_function_scoped == 'class-func'
+
 
 class TestFixtureCleanup:
     @pytest.fixture
