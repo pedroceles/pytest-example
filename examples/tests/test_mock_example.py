@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
 import pytest
-from examples.examples.user_service import UserService
 from unittest.mock import MagicMock, create_autospec
 
 
@@ -25,7 +24,7 @@ class TestMagicMockSideEffect:
         assert mock() == 3  # Third Call
 
     def test_raising_exception_with_side_effect(self, mocker):
-        mock = mocker.MagicMock(side_effect=ValueError('mocked value error'))
+        mock = mocker.MagicMock(side_effect=ValueError("mocked value error"))
         with pytest.raises(ValueError):
             assert mock()
 
@@ -66,7 +65,10 @@ class TestMagicMockSpec:
         mock = create_autospec(double)
         with pytest.raises(TypeError, match="too many positional arguments"):
             mock(1, 2, 3, 4, can_be_called_with_any_args=True)
-        with pytest.raises(AttributeError, match="'function' object has no attribute 'can_access_any_attribute'"):
+        with pytest.raises(
+            AttributeError,
+            match="'function' object has no attribute 'can_access_any_attribute'",
+        ):
             mock.can_access_any_attribute
 
     def test_mock_with_class_spec(self, mocker):
@@ -74,12 +76,16 @@ class TestMagicMockSpec:
         class User:
             id: int
             name: str
+
         mock_class = create_autospec(User)
         with pytest.raises(TypeError, match="too many positional arguments"):
             mock_class(1, 2, 3, 4, can_be_called_with_any_args=True)
-        with pytest.raises(AttributeError, match="Mock object has no attribute 'can_access_any_attribute'"):
+        with pytest.raises(
+            AttributeError,
+            match="Mock object has no attribute 'can_access_any_attribute'",
+        ):
             mock_class.can_access_any_attribute
-        user_mock = mock_class(id=1, name='username')
+        user_mock = mock_class(id=1, name="username")
         assert isinstance(user_mock, User)
 
     def test_mock_with_class_instance_spec(self, mocker):
@@ -87,16 +93,28 @@ class TestMagicMockSpec:
         class User:
             id: int
             name: str
-        user_instance = User(id=1, name='test')
+
+        user_instance = User(id=1, name="test")
         mock_instance = create_autospec(user_instance)
-        with pytest.raises(TypeError, match="'NonCallableMagicMock' object is not callable"):
+        with pytest.raises(
+            TypeError, match="'NonCallableMagicMock' object is not callable"
+        ):
             mock_instance(1, 2, 3, 4, can_be_called_with_any_args=True)
-        with pytest.raises(AttributeError, match="Mock object has no attribute 'can_access_any_attribute'"):
+        with pytest.raises(
+            AttributeError,
+            match="Mock object has no attribute 'can_access_any_attribute'",
+        ):
             mock_instance.can_access_any_attribute
-        with pytest.raises(TypeError, match="'NonCallableMagicMock' object is not callable"):
-            mock_instance(id=1, name='username')
+        with pytest.raises(
+            TypeError, match="'NonCallableMagicMock' object is not callable"
+        ):
+            mock_instance(id=1, name="username")
         assert isinstance(mock_instance.id, int)
-        assert mock_instance.id != 1  # it is mock with int spec. But not the same value.
+        assert (
+            mock_instance.id != 1
+        )  # it is mock with int spec. But not the same value.
 
         assert isinstance(mock_instance.name, str)
-        assert mock_instance.name != 'test'  # it is a mock with str spec. But not the same value.
+        assert (
+            mock_instance.name != "test"
+        )  # it is a mock with str spec. But not the same value.

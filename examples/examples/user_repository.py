@@ -28,9 +28,9 @@ class UserRepository(ABC):
 
 class UserFakeDbRepository(UserRepository):
     def get_user(self, id: int) -> User:
-        '''Simulates a db query'''
+        """Simulates a db query"""
         time.sleep(10)
-        return User(id=id, username=f'user-{id}')
+        return User(id=id, username=f"user-{id}")
 
     @property
     def first_user(self) -> User:
@@ -39,5 +39,3 @@ class UserFakeDbRepository(UserRepository):
     @classmethod
     def save_user(cls, user: User) -> None:
         time.sleep(1)
-
-
