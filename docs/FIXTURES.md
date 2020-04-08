@@ -281,7 +281,7 @@ class TestScopeDependency:
 
 ## Fixture clean-up
 
-Every fixture will run before the test. However some times it is also necessary to do a clean-up after the tests.
+Every fixture will run before the test it's included in. However some times it is also necessary to do a clean-up after the tests.
 To achieve this, the feature should `yield` a value instead of returning it. The clean-up run time will depend on
 the fixture's scope. If it is `function`, after it test where it is used, if it is `class` after it test case and
 so on.
