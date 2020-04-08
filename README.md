@@ -6,3 +6,5 @@ Use the [install script](./install.sh) to install the necessary python packages 
 to be installed).
 
 [run_tests.sh](./run_tests.sh) will run all tests, but feel free to play around with them.
+
+Check the [docs](./docs) for more infor. Have fun!
