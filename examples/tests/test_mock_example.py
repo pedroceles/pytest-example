@@ -1,94 +1,102 @@
+from dataclasses import dataclass
+
+import pytest
+from examples.examples.user_service import UserService
+from unittest.mock import MagicMock, create_autospec
 
 
-class DummyDependency(DependencyInjectionService):
-    def get_latest_corp(self) -> Corporation:
-        return Corporation(id=self.scoped_ids[0], legal_name='Bla')
-
-    @property
-    def latest_corp_id(self) -> int:
-        return 7
+class TestMagicMockReturnValue:
+    def test_return_value(self, mocker):
+        mock = mocker.MagicMock(return_value=2)
+        assert mock() == 2
 
 
-class TestGetCorpName:
-
-    @pytest.fixture
-    def dependency_injection_service(self):
-        return DependencyInjectionService([1, 2, 3, 4])
-
-    @pytest.fixture
-    def mock_patch_get_latest_corp(self, mocker):
-        return mocker.patch(
-            'eshares.implementations.services.launch.demo_test.DependencyInjectionService.get_latest_corp',
-            # autospec=True,
-            return_value=Corporation(id=999, legal_name='999 Corp')
-        )
-
-    @pytest.fixture
-    def mock_patch_object_get_latest_corp(self, mocker, dependency_injection_service):
-        return mocker.patch.object(
-            dependency_injection_service,
-            'get_latest_corp',
-            autospec=True,
-            return_value=Corporation(id=99, legal_name='99 problems')
-        )
-
-    def test_with_dummy_service(self):
-        dummy = DummyDependency([1, 2, 3])
-        service = ServiceBeingTested(dependency=dummy)
-        assert service.get_corp_name() == 'Bla'
-
-    def test_with_mock_patch(self, mock_patch_get_latest_corp):
-        service = ServiceBeingTested()
-        assert service.get_corp_name() == '999 Corp'
-
-    def test_with_mock_patch_object(self, dependency_injection_service, mock_patch_object_get_latest_corp):
-        service = ServiceBeingTested(dependency=dependency_injection_service)
-        assert service.get_corp_name() == '99 problems'
+class TestMagicMockAttribute:
+    def test_attribute(self, mocker):
+        mock = mocker.MagicMock(my_attribute=123)
+        assert mock.my_attribute == 123
 
 
-class TestGetCorpId:
-    @pytest.fixture
-    def dependency_injection_service(self):
-        return DependencyInjectionService([1, 2, 3, 4])
+class TestMagicMockSideEffect:
+    def test_different_return_value_with_side_effect(self, mocker):
+        mock = mocker.MagicMock(side_effect=[1, 2, 3])
+        assert mock() == 1  # First Call
+        assert mock() == 2  # Second Call
+        assert mock() == 3  # Third Call
 
-    @pytest.fixture
-    def mock_patch_latest_corp_id(self, mocker):
-        return mocker.patch(
-            'eshares.implementations.services.launch.demo_test.DependencyInjectionService.latest_corp_id',
-            new_callable=mocker.PropertyMock,
-            return_value=123
-        )
+    def test_raising_exception_with_side_effect(self, mocker):
+        mock = mocker.MagicMock(side_effect=ValueError('mocked value error'))
+        with pytest.raises(ValueError):
+            assert mock()
 
-    @pytest.fixture
-    def mock_patch_object_latest_corp_id(self, mocker, dependency_injection_service):
-        return mocker.patch.object(
-            dependency_injection_service,
-            'latest_corp_id',
-            return_value=321,
-            new_callable=mocker.PropertyMock,
-        )
+    def test_mock_implementation_with_side_effect(self, mocker):
+        def double(number: int) -> int:
+            return number * 2
 
-    @pytest.fixture
-    def mock_printer(self, mocker):
-        return mocker.patch(
-            'eshares.implementations.services.launch.demo_test.DependencyInjectionService.printer',
-            spec=DependencyInjectionService.printer
-        )
+        mock = mocker.MagicMock(side_effect=double)
+        assert mock(3) == 6
 
-    def test_with_dummy_service(self):
-        dummy = DummyDependency([1, 2, 3])
-        service = ServiceBeingTested(dependency=dummy)
-        assert service.get_corp_id() == 7
 
-    def test_with_mock_patch(self, mock_patch_latest_corp_id):
-        service = ServiceBeingTested()
-        assert service.get_corp_id() == 123
+class TestMagicMockAutoMocks:
+    def test_mock_returns_new_mock_by_default(self, mocker):
+        mock = mocker.MagicMock()
+        returned_mock = mock()
+        assert isinstance(returned_mock, MagicMock)
+        assert mock != returned_mock
 
-    def test_with_mock_patch_object(self, dependency_injection_service, mock_patch_object_latest_corp_id):
-        service = ServiceBeingTested(dependency=dependency_injection_service)
-        assert service.get_corp_id() == 321
+    def test_mock_auto_generates_other_mocks(self, mocker):
+        mock = mocker.MagicMock()
+        other_mock = mock.some_attribute
+        yet_another_mock = mock.some_other_attribute
+        assert isinstance(other_mock, MagicMock)
+        assert isinstance(yet_another_mock, MagicMock)
+        assert other_mock != yet_another_mock != mock
 
-    def test_printer_was_called(self, mock_printer, mock_patch_object_latest_corp_id):
-        service = ServiceBeingTested()
-        service.get_corp_id()
-        mock_printer.assert_called_once_with()
+
+class TestMagicMockSpec:
+    def test_mock_without_spec(self, mocker):
+        mock = mocker.MagicMock()
+        mock(1, 2, 3, 4, can_be_called_with_any_args=True)
+        mock.can_access_any_attribute
+
+    def test_mock_with_function_spec(self, mocker):
+        def double(number: int) -> int:
+            return number * 2
+
+        mock = create_autospec(double)
+        with pytest.raises(TypeError, match="too many positional arguments"):
+            mock(1, 2, 3, 4, can_be_called_with_any_args=True)
+        with pytest.raises(AttributeError, match="'function' object has no attribute 'can_access_any_attribute'"):
+            mock.can_access_any_attribute
+
+    def test_mock_with_class_spec(self, mocker):
+        @dataclass
+        class User:
+            id: int
+            name: str
+        mock_class = create_autospec(User)
+        with pytest.raises(TypeError, match="too many positional arguments"):
+            mock_class(1, 2, 3, 4, can_be_called_with_any_args=True)
+        with pytest.raises(AttributeError, match="Mock object has no attribute 'can_access_any_attribute'"):
+            mock_class.can_access_any_attribute
+        user_mock = mock_class(id=1, name='username')
+        assert isinstance(user_mock, User)
+
+    def test_mock_with_class_instance_spec(self, mocker):
+        @dataclass
+        class User:
+            id: int
+            name: str
+        user_instance = User(id=1, name='test')
+        mock_instance = create_autospec(user_instance)
+        with pytest.raises(TypeError, match="'NonCallableMagicMock' object is not callable"):
+            mock_instance(1, 2, 3, 4, can_be_called_with_any_args=True)
+        with pytest.raises(AttributeError, match="Mock object has no attribute 'can_access_any_attribute'"):
+            mock_instance.can_access_any_attribute
+        with pytest.raises(TypeError, match="'NonCallableMagicMock' object is not callable"):
+            mock_instance(id=1, name='username')
+        assert isinstance(mock_instance.id, int)
+        assert mock_instance.id != 1  # it is mock with int spec. But not the same value.
+
+        assert isinstance(mock_instance.name, str)
+        assert mock_instance.name != 'test'  # it is a mock with str spec. But not the same value.
