@@ -8,7 +8,7 @@ For the full example please check [The fixture test file](../examples/tests/test
 ## Fixture as functions or methods
 
 A fixture can be created with a function or a method in the test case.
-To access a fixture return value you can inject it in the test arguments
+To access a fixture's return value you can inject it in the test arguments
 ```python
 @pytest.fixture
 def func_value_of_one():
@@ -63,9 +63,9 @@ class TestFixtureMethodVsFunction3:
 
 In the above example `test_forget_to_inject_function_fixture` would fail with with
 an `AssertionError`. That's because since it was not injected `func_value_of_one` points
-to the function defined in the beginning of the file and is accessible. The assertion fail
-becase such function is not equal to `1`.
-Meanwhile `test_forget_to_inject_method_fixture` with a `NameError('name 'name_of_test' is not defined')`
+to the function defined in the beginning of the file and is accessible. The assertion fails
+because such function is not equal to `1`.
+Meanwhile `test_forget_to_inject_method_fixture` fails with a `NameError('name 'name_of_test' is not defined')`
 exception. Since the fixture is not injected and `name_of_test` is not an available name.
 The former is much easier to debug than the latter.
 
@@ -283,7 +283,7 @@ class TestScopeDependency:
 
 Every fixture will run before the test it's included in. However some times it is also necessary to do a clean-up after the tests.
 To achieve this, the feature should `yield` a value instead of returning it. The clean-up run time will depend on
-the fixture's scope. If it is `function`, after it test where it is used, if it is `class` after it test case and
+the fixture's scope. If it is `function`, after the test where it is used, if it is `class` after the test case and
 so on.
 
 ```python
